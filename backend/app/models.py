@@ -1,5 +1,5 @@
 from datetime import datetime
-from sqlmodel import LargeBinary, Relationship, SQLModel, Field
+from sqlmodel import Relationship, SQLModel, Field
 
 
 class CalendarBase(SQLModel):
@@ -9,7 +9,7 @@ class CalendarBase(SQLModel):
 
 class Calendar(CalendarBase, table=True):
     events: list["Event"] = Relationship(back_populates="calendar")
-    content: bytes | None = Field(sa_column=LargeBinary)
+    content: bytes | None
 
 
 class EventBase(SQLModel):
