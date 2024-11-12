@@ -6,7 +6,8 @@ from fastapi.testclient import TestClient
 from sqlmodel import Session, SQLModel, create_engine
 from sqlmodel.pool import StaticPool
 
-from app.main import app, get_session
+from app.main import app
+from app.database import get_session
 from app.models import Calendar, Event
 
 
@@ -34,12 +35,11 @@ def client_fixture(session: Session):
 TEST_FILES_PATH = "app/tests/test_files"
 
 
-def test_get_calendars_empty(client: TestClient):
+def test_get_calendars_not_auth(client: TestClient):
     response = client.get("/calendars")
     data = response.json()
 
-    assert response.status_code == status.HTTP_200_OK
-    assert data == []
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
 
 def test_download_calendar_nonexisting(client: TestClient):

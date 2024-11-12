@@ -1,7 +1,7 @@
 import icalendar
 from fastapi import HTTPException, status
 
-from .models import Calendar, Event
+from app.models import Calendar, Event
 
 
 def parse_calendar(file: bytes) -> Calendar:

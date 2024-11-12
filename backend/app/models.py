@@ -1,11 +1,37 @@
 from datetime import datetime
+from pydantic import BaseModel
 from sqlmodel import Relationship, SQLModel, Field
+
+
+class UserBase(SQLModel):
+    username: str = Field(primary_key=True)
+
+
+class User(UserBase, table=True):
+    hashed_password: str
+
+
+class UserCreate(UserBase):
+    password: str
+
+
+class UserPublic(UserBase):
+    pass
+
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+
+class TokenData(BaseModel):
+    username: str
 
 
 class CalendarBase(SQLModel):
     name: str | None = Field(default=None)
     id: int | None = Field(default=None, primary_key=True)
-    url: str | None
+    url: str | None = Field(default=None)
 
 
 class Calendar(CalendarBase, table=True):
