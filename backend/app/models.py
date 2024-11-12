@@ -9,6 +9,7 @@ class UserBase(SQLModel):
 
 class User(UserBase, table=True):
     hashed_password: str
+    calendars: list["Calendar"] = Relationship(back_populates="user")
 
 
 class UserCreate(UserBase):
@@ -35,6 +36,8 @@ class CalendarBase(SQLModel):
 
 
 class Calendar(CalendarBase, table=True):
+    user_id: int | None = Field(default=None, foreign_key="user.username")
+    user: User = Relationship(back_populates="calendars")
     events: list["Event"] = Relationship(back_populates="calendar")
     content: bytes | None
 

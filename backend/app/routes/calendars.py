@@ -7,8 +7,9 @@ from fastapi import APIRouter, File, HTTPException, Query, status
 from fastapi.responses import StreamingResponse
 from sqlmodel import select
 
-from app.deps import SessionDep, CurrentUser
-from app.models import Calendar, CalendarPublic, CalendarUrlImport
+from app.crud import get_user_by_username
+from app.deps import SessionDep, CurrentUser, get_current_user
+from app.models import Calendar, CalendarPublic, CalendarUrlImport, User
 from app import utils
 
 router = APIRouter()
@@ -21,16 +22,27 @@ async def get_calendars(
     offset: int = 0,
     limit: Annotated[int, Query(le=100)] = 100,
 ):
-    calendars = session.exec(select(Calendar).offset(offset).limit(limit)).all()
-    return calendars
+    user = session.exec(
+        select(User)
+        .where(User.username == current_user.username)
+        .offset(offset)
+        .limit(limit)
+    ).first()
+    return user.calendars
 
 
 @router.get("/calendars/{calendar_id}/")
-def download_calendar(session: SessionDep, calendar_id: int):
+def download_calendar(session: SessionDep, current_user: CurrentUser, calendar_id: int):
     calendar = session.exec(select(Calendar).where(Calendar.id == calendar_id)).first()
     if calendar is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="No calendar with that id"
+        )
+
+    if calendar.user != get_user_by_username(session, current_user.username):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Calendar doesn't belong to that user",
         )
 
     if not calendar.content:
@@ -48,8 +60,18 @@ def download_calendar(session: SessionDep, calendar_id: int):
 
 
 @router.post("/import-calendar/", response_model=CalendarPublic)
-async def upload_calendar(session: SessionDep, file: Annotated[bytes, File()]):
+async def upload_calendar(
+    session: SessionDep, current_user: CurrentUser, file: Annotated[bytes, File()]
+):
     calendar = utils.parse_calendar(file)
+
+    user = get_user_by_username(session, current_user.username)
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="No user with that username"
+        )
+
+    calendar.user = get_user_by_username(session, current_user.username)
 
     session.add(calendar)
     session.commit()
@@ -59,7 +81,7 @@ async def upload_calendar(session: SessionDep, file: Annotated[bytes, File()]):
 
 @router.post("/import-from-url/", response_model=CalendarPublic)
 async def import_calendar_from_url(
-    session: SessionDep, calendar_url: CalendarUrlImport
+    session: SessionDep, current_user: CurrentUser, calendar_url: CalendarUrlImport
 ):
     try:
         HttpUrl(calendar_url.url)
@@ -77,6 +99,7 @@ async def import_calendar_from_url(
         )
 
     calendar = utils.parse_calendar(rsp)
+    calendar.user = get_user_by_username(session, current_user.username)
     calendar.url = calendar_url.url
 
     session.add(calendar)
