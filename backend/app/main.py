@@ -1,14 +1,15 @@
 from typing import Annotated
 from io import BytesIO
+import requests
 
 from fastapi import FastAPI, Depends, File, HTTPException, Query, status
 from fastapi.responses import StreamingResponse
+from pydantic import HttpUrl, ValidationError
 from sqlmodel import Session, select
-import icalendar
 
-from app.models import Calendar, CalendarPublic, Event
+from app.models import Calendar, CalendarPublic, CalendarUrlImport, Event
 from app.database import create_db_and_tables, get_session
-
+from app.utils import parse_calendar
 
 SessionDep = Annotated[Session, Depends(get_session)]
 
@@ -26,43 +27,6 @@ async def get_calendars(
 ):
     calendars = session.exec(select(Calendar).offset(offset).limit(limit)).all()
     return calendars
-
-
-@app.post("/import-calendar/", response_model=CalendarPublic)
-async def upload_calendar(session: SessionDep, file: Annotated[bytes, File()]):
-    try:
-        ical = icalendar.Calendar.from_ical(file)
-    except ValueError as e:
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail=f"File is malformed: {e}",
-        )
-
-    name = str(ical["PRODID"]).strip()
-    content = file
-    calendar = Calendar(name=name, content=content)
-
-    try:
-        events = [
-            Event(
-                summary=str(event["SUMMARY"]).strip(),
-                date_start=event["DTSTART"].dt,
-                date_end=event["DTEND"].dt,
-                uid=str(event["UID"]).strip(),
-                calendar=calendar,
-            )
-            for event in ical.walk("VEVENT")
-        ]
-    except KeyError as e:
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail=f"Event must have: summary, start, end, uid",
-        )
-
-    session.add(calendar)
-    session.commit()
-
-    return calendar
 
 
 @app.get("/calendars/{calendar_id}/")
@@ -85,3 +49,41 @@ def download_calendar(session: SessionDep, calendar_id: int):
         f"attachment; filename=calendar_{calendar_id}.ics"
     )
     return response
+
+
+@app.post("/import-calendar/", response_model=CalendarPublic)
+async def upload_calendar(session: SessionDep, file: Annotated[bytes, File()]):
+    calendar = parse_calendar(file)
+
+    session.add(calendar)
+    session.commit()
+
+    return calendar
+
+
+@app.post("/import-from-url/", response_model=CalendarPublic)
+async def import_calendar_from_url(
+    session: SessionDep, calendar_url: CalendarUrlImport
+):
+    try:
+        HttpUrl(calendar_url.url)
+    except ValidationError as e:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=f"Invalid URL: {e}"
+        )
+
+    try:
+        rsp = requests.get(calendar_url.url).content
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=f"Cannot get file from {calendar_url.url}: {e}",
+        )
+
+    calendar = parse_calendar(rsp)
+    calendar.url = calendar_url.url
+
+    session.add(calendar)
+    session.commit()
+
+    return calendar

@@ -5,11 +5,16 @@ from sqlmodel import Relationship, SQLModel, Field
 class CalendarBase(SQLModel):
     name: str | None = Field(default=None)
     id: int | None = Field(default=None, primary_key=True)
+    url: str | None
 
 
 class Calendar(CalendarBase, table=True):
     events: list["Event"] = Relationship(back_populates="calendar")
     content: bytes | None
+
+
+class CalendarUrlImport(SQLModel):
+    url: str
 
 
 class EventBase(SQLModel):

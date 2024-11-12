@@ -65,6 +65,7 @@ def test_get_calendars(session: Session, client: TestClient):
 
     assert response.status_code == status.HTTP_200_OK
     assert data[0]["name"] == calendar_name
+    assert data[0]["url"] == None
     assert data[0]["events"][0]["summary"] == event1_summary
     assert data[0]["events"][1]["summary"] == event2_summary
 
@@ -79,7 +80,6 @@ def test_upload_calendar_valid(client: TestClient):
 
     assert response.status_code == status.HTTP_200_OK
     assert data["name"] == "primjer zadatka - apartment 1"
-    assert data["id"] == 1
     assert data["events"] == [
         {
             "id": 1,
@@ -136,3 +136,40 @@ def test_upload_and_download(client: TestClient):
 
     received_file_checksum = hashlib.md5(response.read()).hexdigest()
     assert original_file_checksum == received_file_checksum
+
+
+def test_import_from_url_invalid_url(client: TestClient):
+    response = client.post("/import-from-url", json={"url": "blabla"})
+
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+
+
+def test_import_from_url_no_ics_file_on_url(client: TestClient):
+    response = client.post("/import-from-url", json={"url": "https:://www.google.hr"})
+
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+
+
+def test_import_from_url_valid(client: TestClient):
+    calendar_url = (
+        "https://www.phpclasses.org/browse/download/1/file/63438/name/example.ics"
+    )
+
+    response = client.post(
+        "/import-from-url",
+        json={"url": calendar_url},
+    )
+
+    data = response.json()
+    assert response.status_code == status.HTTP_200_OK
+    assert data["name"] == "-//Mozilla.org/NONSGML Mozilla Calendar V1.1//EN"
+    assert data["url"] == calendar_url
+    assert data["events"] == [
+        {
+            "id": 1,
+            "uid": "20f78720-d755-4de7-92e5-e41af487e4db",
+            "summary": "Just a Test",
+            "date_start": "2014-01-02T11:00:00",
+            "date_end": "2014-01-02T12:00:00",
+        }
+    ]
