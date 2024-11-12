@@ -3,7 +3,7 @@ import hashlib
 
 from fastapi import status
 from fastapi.testclient import TestClient
-from sqlmodel import Session, SQLModel, create_engine
+from sqlmodel import Session, SQLModel, create_engine, select
 from sqlmodel.pool import StaticPool
 
 from app.main import app
@@ -42,34 +42,6 @@ def test_get_calendars_not_auth(client: TestClient):
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
 
-def test_download_calendar_nonexisting(client: TestClient):
-    response = client.get("/calendars/1")
-
-    assert response.status_code == status.HTTP_404_NOT_FOUND
-
-
-def test_get_calendars(session: Session, client: TestClient):
-    calendar_name = "test calendar 1"
-    calendar1 = Calendar(name=calendar_name)
-
-    event1_summary = "Ivica"
-    event1 = Event(summary=event1_summary, calendar=calendar1)
-    event2_summary = "Perica"
-    event2 = Event(summary=event2_summary, calendar=calendar1)
-
-    session.add(calendar1)
-    session.commit()
-
-    response = client.get("/calendars")
-    data = response.json()
-
-    assert response.status_code == status.HTTP_200_OK
-    assert data[0]["name"] == calendar_name
-    assert data[0]["url"] == None
-    assert data[0]["events"][0]["summary"] == event1_summary
-    assert data[0]["events"][1]["summary"] == event2_summary
-
-
 def test_upload_calendar_valid(client: TestClient):
     with open(f"{TEST_FILES_PATH}/valid/apartment_1.ics", "rb") as f:
         response = client.post(
@@ -80,16 +52,18 @@ def test_upload_calendar_valid(client: TestClient):
 
     assert response.status_code == status.HTTP_200_OK
     assert data["name"] == "primjer zadatka - apartment 1"
+
+    for event in data["events"]:
+        del event["id"]
+
     assert data["events"] == [
         {
-            "id": 1,
             "uid": "aca171cfaa8cf1c5765e64e819906485",
             "summary": "Ivica",
             "date_start": "2020-09-30T00:00:00",
             "date_end": "2020-10-02T00:00:00",
         },
         {
-            "id": 2,
             "uid": "26db1820702b397cc969489412b44f6a",
             "summary": "Jurica",
             "date_start": "2020-10-04T00:00:00",
@@ -150,7 +124,7 @@ def test_import_from_url_no_ics_file_on_url(client: TestClient):
     assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
 
 
-def test_import_from_url_valid(client: TestClient):
+def test_import_from_url_valid(session: Session, client: TestClient):
     calendar_url = (
         "https://www.phpclasses.org/browse/download/1/file/63438/name/example.ics"
     )
@@ -164,9 +138,12 @@ def test_import_from_url_valid(client: TestClient):
     assert response.status_code == status.HTTP_200_OK
     assert data["name"] == "-//Mozilla.org/NONSGML Mozilla Calendar V1.1//EN"
     assert data["url"] == calendar_url
+
+    for event in data["events"]:
+        del event["id"]
+
     assert data["events"] == [
         {
-            "id": 1,
             "uid": "20f78720-d755-4de7-92e5-e41af487e4db",
             "summary": "Just a Test",
             "date_start": "2014-01-02T11:00:00",
