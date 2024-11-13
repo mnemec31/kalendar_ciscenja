@@ -51,7 +51,7 @@ class CleaningDateBase(SQLModel):
     date: datetime.date
 
 
-class CleaningDate(SQLModel, table=True):
+class CleaningDate(CleaningDateBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
     calendar_id: int | None = Field(default=None, foreign_key="calendar.id")
     calendar: Calendar = Relationship(back_populates="cleaning_dates")
