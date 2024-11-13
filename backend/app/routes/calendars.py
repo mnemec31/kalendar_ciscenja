@@ -32,6 +32,11 @@ async def get_calendars(
         .limit(limit)
     ).first()
 
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+        )
+
     if not (from_date or to_date):
         return user.calendars
 
@@ -92,7 +97,7 @@ async def upload_calendar(
             status_code=status.HTTP_400_BAD_REQUEST, detail="No user with that username"
         )
 
-    calendar.user = get_user_by_username(session, current_user.username)
+    calendar.user = user
 
     session.add(calendar)
     session.commit()
@@ -119,8 +124,15 @@ async def import_calendar_from_url(
             detail=f"Cannot get file from {calendar_url.url}: {e}",
         )
 
+    user = get_user_by_username(session, current_user.username)
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="No user with that username"
+        )
+
     calendar = utils.parse_calendar(rsp)
-    calendar.user = get_user_by_username(session, current_user.username)
+
+    calendar.user = user
     calendar.url = calendar_url.url
 
     session.add(calendar)

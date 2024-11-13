@@ -4,9 +4,27 @@ from fastapi import HTTPException, status
 from app.models import Calendar, Event
 
 
+def check_events_valid(events: list[Event]) -> bool:
+    events.sort(key=lambda event: event.date_start)
+
+    for event in events:
+        if event.date_start >= event.date_end:
+            return False
+
+    for event, next_event in zip(events, events[1:]):
+        if event.date_start == next_event.date_start:
+            return False
+        if event.date_end == next_event.date_end:
+            return False
+        if event.date_end > next_event.date_start:
+            return False
+
+    return True
+
+
 def parse_calendar(file: bytes) -> Calendar:
     try:
-        ical = icalendar.Calendar.from_ical(file)
+        ical = icalendar.Calendar.from_ical(file.decode("utf-8"))
     except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
@@ -18,7 +36,7 @@ def parse_calendar(file: bytes) -> Calendar:
     calendar = Calendar(name=name, content=content)
 
     try:
-        _ = [
+        events = [
             Event(
                 summary=str(event["SUMMARY"]).strip(),
                 date_start=event["DTSTART"].dt,
@@ -32,6 +50,12 @@ def parse_calendar(file: bytes) -> Calendar:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail=f"Event must have: summary, start, end, uid",
+        )
+
+    if not check_events_valid(events):
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Events not valid",
         )
 
     return calendar
