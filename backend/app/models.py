@@ -38,20 +38,35 @@ class CalendarBase(SQLModel):
 class Calendar(CalendarBase, table=True):
     user_id: str | None = Field(default=None, foreign_key="user.username")
     user: User = Relationship(back_populates="calendars")
-    events: list["Event"] = Relationship(back_populates="calendar")
     content: bytes | None
+    events: list["Event"] = Relationship(back_populates="calendar")
+    cleaning_dates: list["CleaningDate"] = Relationship(back_populates="calendar")
 
 
 class CalendarUrlImport(SQLModel):
     url: str
 
 
+class CleaningDateBase(SQLModel):
+    date: datetime.date
+
+
+class CleaningDate(SQLModel, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+    calendar_id: int | None = Field(default=None, foreign_key="calendar.id")
+    calendar: Calendar = Relationship(back_populates="cleaning_dates")
+
+
+class CleaningDatePublic(CleaningDateBase):
+    pass
+
+
 class EventBase(SQLModel):
     id: int | None = Field(default=None, primary_key=True)
     uid: str | None = Field(default=None)
     summary: str | None = Field(default=None)
-    date_start: datetime.date | None = Field(default=None)
-    date_end: datetime.date | None = Field(default=None)
+    date_start: datetime.date = Field(default=None)
+    date_end: datetime.date = Field(default=None)
 
 
 class Event(EventBase, table=True):
@@ -65,3 +80,4 @@ class EventPublic(EventBase):
 
 class CalendarPublic(CalendarBase):
     events: list[EventPublic] | None = None
+    cleaning_dates: list[CleaningDatePublic] | None = None
