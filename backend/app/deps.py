@@ -5,23 +5,17 @@ import jwt
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jwt.exceptions import InvalidTokenError
-from pydantic import ValidationError
 from sqlmodel import Session, select
 
 from app import security
 from app.config import settings
 from app.models import TokenData, User, User
-from app.database import engine
+from app.database import get_session
 
 reusable_oauth2 = OAuth2PasswordBearer(tokenUrl="/token")
 
 
-def get_db() -> Generator[Session, None, None]:
-    with Session(engine) as session:
-        yield session
-
-
-SessionDep = Annotated[Session, Depends(get_db)]
+SessionDep = Annotated[Session, Depends(get_session)]
 TokenDep = Annotated[str, Depends(reusable_oauth2)]
 
 
