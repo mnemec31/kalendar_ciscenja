@@ -1,4 +1,4 @@
-from datetime import datetime
+import datetime
 from pydantic import BaseModel
 from sqlmodel import Relationship, SQLModel, Field
 
@@ -36,7 +36,7 @@ class CalendarBase(SQLModel):
 
 
 class Calendar(CalendarBase, table=True):
-    user_id: int | None = Field(default=None, foreign_key="user.username")
+    user_id: str | None = Field(default=None, foreign_key="user.username")
     user: User = Relationship(back_populates="calendars")
     events: list["Event"] = Relationship(back_populates="calendar")
     content: bytes | None
@@ -50,8 +50,8 @@ class EventBase(SQLModel):
     id: int | None = Field(default=None, primary_key=True)
     uid: str | None = Field(default=None)
     summary: str | None = Field(default=None)
-    date_start: datetime | None = Field(default=None)
-    date_end: datetime | None = Field(default=None)
+    date_start: datetime.date | None = Field(default=None)
+    date_end: datetime.date | None = Field(default=None)
 
 
 class Event(EventBase, table=True):

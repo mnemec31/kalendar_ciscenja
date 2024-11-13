@@ -1,14 +1,15 @@
 from io import BytesIO
-from typing import Annotated
+from typing import Annotated, Optional
+import datetime
 
-from pydantic import HttpUrl, ValidationError
 import requests
+from pydantic import HttpUrl, ValidationError
 from fastapi import APIRouter, File, HTTPException, Query, status
 from fastapi.responses import StreamingResponse
 from sqlmodel import select
 
 from app.crud import get_user_by_username
-from app.deps import SessionDep, CurrentUser, get_current_user
+from app.deps import SessionDep, CurrentUser
 from app.models import Calendar, CalendarPublic, CalendarUrlImport, User
 from app import utils
 
@@ -21,6 +22,8 @@ async def get_calendars(
     current_user: CurrentUser,
     offset: int = 0,
     limit: Annotated[int, Query(le=100)] = 100,
+    from_date: Optional[datetime.date] = Query(default=None),
+    to_date: Optional[datetime.date] = Query(default=None),
 ):
     user = session.exec(
         select(User)
@@ -28,7 +31,25 @@ async def get_calendars(
         .offset(offset)
         .limit(limit)
     ).first()
-    return user.calendars
+
+    if not (from_date or to_date):
+        return user.calendars
+
+    calendar_list = []
+    for calendar in user.calendars:
+        filtered_events = [
+            event
+            for event in calendar.events
+            if (not from_date or event.date_end >= from_date)
+            and (not to_date or event.date_start <= to_date)
+        ]
+        calendar_public = CalendarPublic(
+            **calendar.model_dump(), events=filtered_events
+        )
+
+        calendar_list.append(calendar_public)
+
+    return calendar_list
 
 
 @router.get("/calendars/{calendar_id}/")
