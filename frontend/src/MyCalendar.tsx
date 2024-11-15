@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { Calendar, momentLocalizer } from "react-big-calendar";
-import toast, { Toaster } from "react-hot-toast"
 import moment from "moment";
+import { useNavigate } from "react-router-dom";
+
 
 import { getAllCalendars } from "./api/getAllCalendar.ts"
 import "react-big-calendar/lib/css/react-big-calendar.css";
@@ -17,20 +18,26 @@ const MyCalendar = () => {
     const [events, setEvents] = useState([]);
     const [token, setToken] = useState("")
     const [trigger, setTrigger] = useState(false)
+    const navigate = useNavigate();
     const colors = [
-        "#F5F5DC",
-        "#FED5CF",
-        "#F1B598",
-        "#D3C7E6",
-        "#f9c74f",
-        "#FFDAB9",
-        "#FFFACD",
-        "#277da1",
+        "#BDB2FF",
+        "#AEDCF9",
+        "#FFD6A5",
+        "#CAFFBF",
+        "#A0C4FF",
+        "#FFADAD",
+        "#FDFFB6",
+        "#FFC6FF",
     ]
 
     const handleSelectEvent = async (event) => {
         console.log(event.calendar)
         await getCallendarById(token, event.calendar)
+    }
+
+    const handleLogout = () => {
+        localStorage.removeItem("access_token");
+        navigate("/");
     }
 
     useEffect(() => {
@@ -82,17 +89,14 @@ const MyCalendar = () => {
 
     return (
         <div className="App">
-            <Toaster
-                position="bottom-center"
-                reverseOrder={false}
-            />
-
-            <h1>🧼 Clean my apartment calendar</h1>
+            <div className="flexContainer">
+                <h1>🧼 Clean my apartment calendar</h1>
+                <button className="uploadButton" onClick={handleLogout}>Logout</button>
+            </div>
             <div className="uploadsDiv">
                 <UploadButton token={token} setTrigger={setTrigger} />
                 <ImportFromURL token={token} setTrigger={setTrigger} />
             </div>
-
             <Calendar
                 localizer={localizer}
                 defaultDate={new Date()}
