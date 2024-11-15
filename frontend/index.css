@@ -1,0 +1,120 @@
+body {
+    margin: 0;
+}
+
+h1 {
+    line-height: 20px;
+    font-weight: 500;
+    color: #0d324d;
+}
+
+button {
+    border-radius: 4px !important;
+}
+
+.App {
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    padding: 1rem;
+    font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif
+}
+
+.uploadsDiv {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    width: 100%;
+    max-width: 500px;
+    align-items: flex-start;
+    padding: 1rem 0;
+    margin-bottom: 1rem;
+}
+
+.uploadSection,
+.importSection {
+    display: flex;
+    gap: 0.5rem;
+    width: 100%;
+    height: 40px;
+}
+
+.fileInput,
+.urlInput {
+    flex-grow: 1;
+    padding: 0.5rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 1rem;
+    outline-color: #277da1;
+    transition: border-color 0.3s ease;
+}
+
+.fileInput:focus,
+.urlInput:focus {
+    border-color: #277da1;
+}
+
+input::file-selector-button {
+    color: #277da1;
+    padding: 3px 10px;
+    border: none;
+    border-radius: 4px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+input::file-selector-button:hover {
+    background-color: #cecccc;
+}
+
+input::file-selector-button:active {
+    background-color: #b3b0b0;
+}
+
+.uploadButton,
+.importButton {
+    min-width: 100px;
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+    color: #fff;
+    background-color: #277da1;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.uploadButton:hover,
+.importButton:hover {
+    background-color: #0056b3;
+}
+
+.uploadButton:active,
+.importButton:active {
+    background-color: #003f7f;
+}
+
+.rbc-calendar {
+    max-height: calc(100vh - 240px);
+}
+
+.rbc-month-view {
+    border-radius: 4px;
+}
+
+.rbc-header {
+    font-weight: 500 !important;
+    padding: 6px 0 !important;
+}
+
+.rbc-btn-group>button {
+    box-shadow: none !important;
+    cursor: pointer;
+    border: none !important;
+}
+
+.rbc-toolbar-label {
+    font-size: 20px;
+}
