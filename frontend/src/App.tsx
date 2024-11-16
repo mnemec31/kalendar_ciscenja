@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Login from "./Login.js";
 import MyCalendar from "./MyCalendar.tsx";
 import "../index.css";
@@ -13,12 +13,14 @@ const App = () => {
         reverseOrder={false}
       />
       <Routes>
-        <Route path="/" element={<Login />} />
+        <Route path="/login" element={<Login />} />
 
-        <Route path="/calendar" element={
+        <Route path="/" element={
           <ProtectedRoute>
             <MyCalendar />
           </ProtectedRoute>} />
+
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
 
 

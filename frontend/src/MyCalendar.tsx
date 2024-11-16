@@ -37,7 +37,7 @@ const MyCalendar = () => {
 
     const handleLogout = () => {
         localStorage.removeItem("access_token");
-        navigate("/");
+        navigate("/login");
     }
 
     useEffect(() => {
