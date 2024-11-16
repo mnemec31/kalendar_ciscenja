@@ -96,6 +96,7 @@ const MyCalendar = () => {
             <div className="uploadsDiv">
                 <UploadButton token={token} setTrigger={setTrigger} />
                 <ImportFromURL token={token} setTrigger={setTrigger} />
+                <p>If you want to export original ICS file for calendar, just click on it</p>
             </div>
             <Calendar
                 localizer={localizer}

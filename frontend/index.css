@@ -28,7 +28,6 @@ button {
     max-width: 500px;
     align-items: flex-start;
     padding: 1rem 0;
-    margin-bottom: 1rem;
 }
 
 .uploadSection,
@@ -94,10 +93,6 @@ input::file-selector-button:active {
 .uploadButton:active,
 .importButton:active {
     background-color: #003f7f;
-}
-
-.rbc-calendar {
-    max-height: calc(100vh - 240px);
 }
 
 .rbc-month-view {
@@ -171,4 +166,8 @@ input::file-selector-button:active {
 label {
     color: rgb(85, 85, 85);
     line-height: 2rem;
+}
+
+p {
+    margin: 0;
 }

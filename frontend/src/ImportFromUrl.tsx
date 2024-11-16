@@ -22,7 +22,7 @@ const ImportFromURL = ({ token, setTrigger }: { token: string, setTrigger: Dispa
                     "Content-Type": "application/json",
                     authorization: `Bearer ${token}`
                 },
-                body: JSON.stringify({ url }) // Send the URL in JSON format
+                body: JSON.stringify({ url })
             });
 
             if (!response.ok) {
