@@ -9,7 +9,7 @@ from sqlmodel.pool import StaticPool
 
 from app.main import app
 from app.database import get_session
-from app.models import User, UserCreate
+from app.models.users import User, UserCreate
 from app.security import get_password_hash, create_access_token
 
 

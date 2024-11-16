@@ -1,6 +1,8 @@
 from datetime import date
 from dataclasses import dataclass
-from .models import Calendar, CleaningDate
+from collections.abc import Sequence
+
+from app.models.calendars import Calendar, CleaningDate
 
 
 @dataclass
@@ -29,7 +31,7 @@ class CleaningBuffer:
         return not (self.start > other.end or self.end < other.start)
 
 
-def create_cleaning_buffers(calendars: list[Calendar]) -> list[CleaningBuffer]:
+def create_cleaning_buffers(calendars: Sequence[Calendar]) -> list[CleaningBuffer]:
     cleaning_buffers: list[CleaningBuffer] = []
 
     for calendar in calendars:
@@ -44,11 +46,14 @@ def create_cleaning_buffers(calendars: list[Calendar]) -> list[CleaningBuffer]:
         events.sort()
 
         # We know that:
-        #   1. events are sorted
+        #   1. events are sorted by starting dates
         #   2. events don't have overlap (because we don't allow them when creating calendars)
         # Cleaning buffer can then be found by looking at the difference between end of current
         # event and start of the next event
         for event, next_event in zip(events, events[1:]):
+            if not calendar.id:
+                continue
+
             cleaning_buffers.append(
                 CleaningBuffer(
                     calendar_id=calendar.id,
@@ -60,7 +65,7 @@ def create_cleaning_buffers(calendars: list[Calendar]) -> list[CleaningBuffer]:
     return cleaning_buffers
 
 
-def calculate_cleaning_times(calendars: list[Calendar]) -> list[CleaningDate]:
+def calculate_cleaning_times(calendars: Sequence[Calendar]) -> list[CleaningDate]:
     """
     Algorithm:
         - find all intervals which are free for cleaning (i.e. not occupied by guests) and save them to a list

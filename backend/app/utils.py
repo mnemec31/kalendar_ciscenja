@@ -1,7 +1,7 @@
 import icalendar
 from fastapi import HTTPException, status
 
-from app.models import Calendar, Event
+from app.models.calendars import Calendar, Event
 
 
 def check_events_valid(events: list[Event]) -> bool:

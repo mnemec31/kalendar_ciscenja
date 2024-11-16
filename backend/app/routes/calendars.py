@@ -10,7 +10,13 @@ from sqlmodel import select
 
 from app.crud import get_user_by_username
 from app.deps import SessionDep, CurrentUser
-from app.models import Calendar, CalendarPublic, CalendarUrlImport, User, CleaningDate
+from app.models.calendars import (
+    Calendar,
+    CalendarPublic,
+    CalendarUrlImport,
+    CleaningDate,
+)
+from app.models.users import User
 from app import utils
 from app import cleaning_algorithm
 
@@ -109,7 +115,7 @@ async def upload_calendar(
         session.delete(c)
     session.commit()
 
-    all_calendars = session.exec(select(Calendar).where(Calendar.user == user))
+    all_calendars = session.exec(select(Calendar).where(Calendar.user == user)).all()
     cleaning_times = cleaning_algorithm.calculate_cleaning_times(all_calendars)
 
     for ct in cleaning_times:

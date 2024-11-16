@@ -1,7 +1,7 @@
 import pytest
 
 from app.cleaning_algorithm import calculate_cleaning_times
-from app.models import Calendar, Event, CleaningDate
+from app.models.calendars import Calendar, Event, CleaningDate
 import datetime
 
 

@@ -9,7 +9,7 @@ from sqlmodel import Session, select
 
 from app import security
 from app.config import settings
-from app.models import TokenData, User, User
+from app.models.users import TokenData, User, User
 from app.database import get_session
 
 reusable_oauth2 = OAuth2PasswordBearer(tokenUrl="/token")
