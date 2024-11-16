@@ -31,7 +31,14 @@ def parse_calendar(file: bytes) -> Calendar:
             detail=f"File is malformed: {e}",
         )
 
-    name = str(ical["PRODID"]).strip()
+    try:
+        name = str(ical["PRODID"]).strip()
+    except KeyError as e:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Calendar must have PRODID field",
+        )
+
     content = file
     calendar = Calendar(name=name, content=content)
 
