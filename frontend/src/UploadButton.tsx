@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useState, Dispatch, SetStateAction } from "react";
 import toast from "react-hot-toast";
 import "../index.css"
 
-const UploadButton = ({ token, setTrigger }) => {
+const UploadButton = ({ token, setTrigger }: { token: string, setTrigger: Dispatch<SetStateAction<boolean>> }) => {
     const [file, setFile] = useState(null);
 
-    const handleFileChange = (event) => {
+    const handleFileChange = (event: any) => {
         setFile(event.target.files[0]);
     };
 
@@ -19,7 +19,7 @@ const UploadButton = ({ token, setTrigger }) => {
         formData.append("file", file);
 
         try {
-            const response = await fetch("http://127.0.0.1:8000/import-calendar", {
+            const response = await fetch("http://127.0.0.1:3107/import-calendar", {
                 method: "POST",
                 headers: {
                     authorization: `Bearer ${token}`

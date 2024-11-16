@@ -3,7 +3,7 @@ export const login = async (credentials: {
   password: string
 }) => {
   try {
-    const response = await fetch("http://127.0.0.1:8000/token/", {
+    const response = await fetch("http://127.0.0.1:3107/token/", {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded"

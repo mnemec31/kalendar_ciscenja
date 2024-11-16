@@ -30,7 +30,7 @@ const MyCalendar = () => {
         "#FFC6FF",
     ]
 
-    const handleSelectEvent = async (event) => {
+    const handleSelectEvent = async (event: any) => {
         console.log(event.calendar)
         await getCallendarById(token, event.calendar)
     }
@@ -104,7 +104,7 @@ const MyCalendar = () => {
                 events={events}
                 onSelectEvent={handleSelectEvent}
                 style={{ height: "100vh" }}
-                eventPropGetter={(event) => ({
+                eventPropGetter={(event: any) => ({
                     style: {
                         backgroundColor: event.color || "#f0f0f0",
                         color: event.textColor || "#000"

@@ -1,6 +1,6 @@
 export const getCallendarById = async (token: string, id: string) => {
   try {
-    const response = await fetch(`http://127.0.0.1:8000/calendars/${id}`, {
+    const response = await fetch(`http://127.0.0.1:3107/calendars/${id}`, {
       method: 'GET',
       headers: {
         authorization: `Bearer ${token}`
@@ -12,7 +12,6 @@ export const getCallendarById = async (token: string, id: string) => {
 
     const blob = await response.blob();
 
-    // Create a download link and click it programmatically
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
@@ -20,8 +19,7 @@ export const getCallendarById = async (token: string, id: string) => {
     document.body.appendChild(link);
     link.click();
 
-    // Clean up and remove the link
-    link.parentNode.removeChild(link);
+    if (link.parentNode) link.parentNode.removeChild(link);
     window.URL.revokeObjectURL(url);
 
   } catch (error) {

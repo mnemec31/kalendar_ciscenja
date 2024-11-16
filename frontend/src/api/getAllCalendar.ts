@@ -1,6 +1,6 @@
 export const getAllCalendars = async (token: string) => {
   try {
-    const response = await fetch('http://127.0.0.1:8000/calendars/', {
+    const response = await fetch('http://127.0.0.1:3107/calendars/', {
       method: 'GET',
       headers: {
         authorization: `Bearer ${token}`

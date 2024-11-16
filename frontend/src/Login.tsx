@@ -11,16 +11,16 @@ const Login = () => {
     });
     const navigate = useNavigate();
 
-    const handleChange = (e) => {
-        const { name, value } = e.target;
+    const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = event.target;
         setCredentials((prevState) => ({
             ...prevState,
             [name]: value
         }));
     };
 
-    const handleLogin = async (e) => {
-        e.preventDefault();
+    const handleLogin = async (event: React.MouseEvent<HTMLButtonElement>) => {
+        event.preventDefault();
 
         try {
             const data = await login(credentials);
@@ -33,8 +33,8 @@ const Login = () => {
         }
     };
 
-    const handleRegister = async (e) => {
-        e.preventDefault();
+    const handleRegister = async (event: React.MouseEvent<HTMLButtonElement>) => {
+        event.preventDefault();
 
         try {
             const data = await register(credentials);
