@@ -1,11 +1,10 @@
-from collections.abc import Generator
 from typing import Annotated
 
 import jwt
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jwt.exceptions import InvalidTokenError
-from sqlmodel import Session, select
+from sqlmodel import Session
 
 from app import security
 from app.config import settings
@@ -30,17 +29,16 @@ async def get_current_user(session: SessionDep, token: TokenDep):
         payload = jwt.decode(
             token, settings.SECRET_KEY, algorithms=[security.ALGORITHM]
         )
+
         username: str = payload.get("sub")
         if username is None:
             raise credentials_exception
+
         token_data = TokenData(username=username)
     except InvalidTokenError:
         raise credentials_exception
 
-    user = session.exec(
-        select(User).where(User.username == token_data.username)
-    ).first()
-
+    user = session.get(User, token_data.username)
     if user is None:
         raise credentials_exception
 

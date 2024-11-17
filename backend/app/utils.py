@@ -1,5 +1,5 @@
-import icalendar
 from fastapi import HTTPException, status
+import icalendar
 
 from app.models.calendars import Calendar, Event
 

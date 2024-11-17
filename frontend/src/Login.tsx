@@ -59,10 +59,10 @@ const Login = () => {
         try {
             const data = await register(credentials);
             localStorage.setItem("access_token", data.access_token);
-            toast.success("Register completed! Now login!")
+            toast.success("Register completed! Please login in now")
         }
         catch (err) {
-            toast.error("Register failed!")
+            toast.error("Register failed.")
         }
     };
 

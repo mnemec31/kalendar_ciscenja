@@ -1,5 +1,7 @@
 import datetime
-from sqlmodel import Relationship, SQLModel, Field
+
+from sqlmodel import Field, Relationship, SQLModel
+
 from app.models.users import User
 
 

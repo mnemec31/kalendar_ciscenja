@@ -29,12 +29,9 @@ const ImportFromURL = ({ token, setTrigger }: { token: string, setTrigger: Dispa
                 throw new Error(`HTTP error! Status: ${response.status}`);
             }
 
-            const data = await response.json();
             toast.success("URL imported successfully!");
             setTrigger(prev => !prev)
-            console.log("Response data:", data);
         } catch (error) {
-            console.error("Error importing URL:", error);
             toast.error("Failed to import URL.");
         }
     };

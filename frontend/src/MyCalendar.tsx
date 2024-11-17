@@ -31,7 +31,6 @@ const MyCalendar = () => {
     ]
 
     const handleSelectEvent = async (event: any) => {
-        console.log(event.calendar)
         await getCallendarById(token, event.calendar)
     }
 
@@ -45,12 +44,11 @@ const MyCalendar = () => {
             try {
                 const token = localStorage.getItem("access_token")
                 if (!token) return
+
                 setToken(token)
                 const data = await getAllCalendars(token);
                 const dateFormat = "YYYY-MM-DD";
                 let mapped_events: any = [];
-
-                console.log(data);
 
                 for (const cal of data) {
                     for (const event of cal.events) {
@@ -64,7 +62,6 @@ const MyCalendar = () => {
                     }
 
                     for (const clean_date of cal.cleaning_dates) {
-                        console.log(clean_date)
                         mapped_events.push({
                             start: moment(clean_date.date, dateFormat).toDate(),
                             end: moment(clean_date.date, dateFormat).add("days", 1).toDate(),
@@ -77,7 +74,6 @@ const MyCalendar = () => {
                     }
                 }
 
-                console.log("Mapped events: ", mapped_events);
                 setEvents(mapped_events);
             } catch (err) {
                 console.error("Error fetching events:", err instanceof Error ? err.message : 'Unknown error');
@@ -90,7 +86,7 @@ const MyCalendar = () => {
     return (
         <div className="App">
             <div className="flexContainer">
-                <h1>🧼 Clean my apartment calendar</h1>
+                <h1>🧼 Cleaning calendar</h1>
                 <button className="uploadButton" onClick={handleLogout}>Logout</button>
             </div>
             <div className="uploadsDiv">

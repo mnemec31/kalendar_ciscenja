@@ -1,6 +1,7 @@
-from pydantic import BaseModel
-from sqlmodel import Relationship, SQLModel, Field
 from typing import TYPE_CHECKING
+
+from pydantic import BaseModel
+from sqlmodel import Field, Relationship, SQLModel
 
 if TYPE_CHECKING:
     from app.models.calendars import Calendar

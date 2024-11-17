@@ -1,6 +1,6 @@
+from collections.abc import Sequence
 from datetime import date
 from dataclasses import dataclass
-from collections.abc import Sequence
 
 from app.models.calendars import Calendar, CleaningDate
 
@@ -74,9 +74,9 @@ def calculate_cleaning_times(calendars: Sequence[Calendar]) -> list[CleaningDate
         - repeat until all cleaning intervals are cleaned
     """
 
-    cleaning_times: list[CleaningDate] = []
-
     cleaning_buffers = create_cleaning_buffers(calendars)
+
+    cleaning_times: list[CleaningDate] = []
 
     while True:
         not_cleaned_buffers = [

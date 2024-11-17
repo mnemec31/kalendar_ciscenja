@@ -1,15 +1,17 @@
+import datetime
 from io import BytesIO
 from typing import Annotated, Optional
-import datetime
 
 import requests
-from pydantic import HttpUrl, ValidationError
 from fastapi import APIRouter, File, HTTPException, Query, status
 from fastapi.responses import StreamingResponse
+from pydantic import HttpUrl, ValidationError
 from sqlmodel import select
 
+from app import cleaning_algorithm
+from app import utils
 from app.crud import get_user_by_username
-from app.deps import SessionDep, CurrentUser
+from app.deps import CurrentUser, SessionDep
 from app.models.calendars import (
     Calendar,
     CalendarPublic,
@@ -17,8 +19,7 @@ from app.models.calendars import (
     CleaningDate,
 )
 from app.models.users import User
-from app import utils
-from app import cleaning_algorithm
+
 
 router = APIRouter()
 
@@ -27,17 +28,10 @@ router = APIRouter()
 async def get_calendars(
     session: SessionDep,
     current_user: CurrentUser,
-    offset: int = 0,
-    limit: Annotated[int, Query(le=100)] = 100,
     from_date: Optional[datetime.date] = Query(default=None),
     to_date: Optional[datetime.date] = Query(default=None),
 ):
-    user = session.exec(
-        select(User)
-        .where(User.username == current_user.username)
-        .offset(offset)
-        .limit(limit)
-    ).first()
+    user = get_user_by_username(session, current_user.username)
 
     if user is None:
         raise HTTPException(
@@ -66,7 +60,7 @@ async def get_calendars(
 
 @router.get("/calendars/{calendar_id}/")
 def download_calendar(session: SessionDep, current_user: CurrentUser, calendar_id: int):
-    calendar = session.exec(select(Calendar).where(Calendar.id == calendar_id)).first()
+    calendar = session.get(Calendar, calendar_id)
     if calendar is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="No calendar with that id"
@@ -105,22 +99,23 @@ async def upload_calendar(
         )
 
     calendar.user = user
-
     session.add(calendar)
     session.commit()
 
-    # First clear all cleaning dates for that user
-    cds = session.exec(select(CleaningDate).join(Calendar).where(Calendar.user == user))
-    for c in cds:
-        session.delete(c)
+    # First delete all cleaning dates for calendars belonging to this user
+    cleaning_dates_user = session.exec(
+        select(CleaningDate).join(Calendar).where(Calendar.user == user)
+    )
+    for date in cleaning_dates_user:
+        session.delete(date)
     session.commit()
 
+    # Recalculate cleaning times
     all_calendars = session.exec(select(Calendar).where(Calendar.user == user)).all()
     cleaning_times = cleaning_algorithm.calculate_cleaning_times(all_calendars)
 
-    for ct in cleaning_times:
-        session.add(ct)
-
+    for time in cleaning_times:
+        session.add(time)
     session.commit()
 
     return calendar
@@ -137,21 +132,21 @@ async def import_calendar_from_url(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=f"Invalid URL: {e}"
         )
 
+    user = get_user_by_username(session, current_user.username)
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="No user with that username"
+        )
+
     try:
-        rsp = requests.get(calendar_url.url).content
+        response = requests.get(calendar_url.url).content
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail=f"Cannot get file from {calendar_url.url}: {e}",
         )
 
-    user = get_user_by_username(session, current_user.username)
-    if user is None:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="No user with that username"
-        )
-
-    calendar = utils.parse_calendar(rsp)
+    calendar = utils.parse_calendar(response)
 
     calendar.user = user
     calendar.url = calendar_url.url

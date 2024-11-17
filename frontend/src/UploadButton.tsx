@@ -35,7 +35,6 @@ const UploadButton = ({ token, setTrigger }: { token: string, setTrigger: Dispat
             setTrigger(prev => !prev)
 
         } catch (error) {
-            console.error("Error uploading file:", error);
             toast.error("Failed to upload file.");
         }
     };

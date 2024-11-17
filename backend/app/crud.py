@@ -1,11 +1,11 @@
-from sqlmodel import Session, select
+from sqlmodel import Session
 
 from app.models.users import User, UserCreate
 from app.security import get_password_hash, verify_password
 
 
 def get_user_by_username(session: Session, username: str) -> User | None:
-    user = session.exec(select(User).where(User.username == username)).first()
+    user = session.get(User, username)
     return user
 
 
